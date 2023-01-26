@@ -1,17 +1,26 @@
 /*
 
-To run: 
+Code Function: Main Implementation of CPU for SystemC RISCV Project
 
-export SYSTEMC_HOME=/usr/local/systemc-2.3.2/
+EL7210 Course: Hardware Software Co-Design: Lab2, SystemC_RISCV
+Department of Electrical Engineering
+Indian Institute of Technology, Jodhpur
 
-g++ -I. -I$SYSTEMC_HOME/include -L. -L$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$SYSTEMC_HOME/lib-linux64 -o cpu_testbench cpu_testbench.cpp -lsystemc -lm
+Original code forked from repo: https://github.com/binodkumar23/IITJ_IDDEDA/tree/main/SystemC_RISCV
+Original Code Authors: Vipul Sharma(B19CSE099) and Darsh Patel(B19CSE115)
+Mentor: Dr. Binod Kumar
 
-./cpu_testbench
+Modified code repo: https://github.com/m21aie249/eel7210-lab2
+Modified by: Rohit Mathur (M21AIE249)
+Mentor: Dr. Binod Kumar
+Modifications: Add 5 new instructions
+Added code marked with "M21AIE249" comment
+
+For simulating this module, follow the instructions in the testbench_cpu.cpp file
 
 */
 
 #include "systemc.h"
-
 
 SC_MODULE (cpu) {
   sc_in_clk     clock ;      // Clock input of the design
@@ -26,14 +35,10 @@ SC_MODULE (cpu) {
   //------------Local Variables Here---------------------
   sc_uint<4>	count;
 
-
   // 32 CPU registers
   sc_int<32> register_memory[32];
 
-  
-
   //cout<<register_memory[0]<<"check 1\n";
-  
 
     /*
     R-type: register-register
@@ -49,14 +54,11 @@ SC_MODULE (cpu) {
   sc_bv<7>  S_type_opcode = "0100011";
   sc_bv<7>  B_type_opcode = "1100011";
   sc_bv<7>  J_type_opcode = "1101110";
-  //sc_bv<7>  R_type_add_func7 = "0000000";
-  //sc_bv<3>  R_type_add_func3 = "111";
 
   // R_type grp1 
   sc_bv<7>  R_type_add_func7 = "0000000";
   sc_bv<3>  R_type_add_func3 = "111";
     
-  
   // R_type grp2
   sc_bv<7>  R_type_and_func7 = "0000001";
   sc_bv<7>  R_type_or_func7 = "0000001";
@@ -66,10 +68,8 @@ SC_MODULE (cpu) {
   sc_bv<3>  R_type_or_func3 = "110";
   sc_bv<3>  R_type_xor_func3 = "100";
 
-  
-
   // R_type grp4
-	sc_bv<7>  R_type_sub_func7 = "0100000";
+  sc_bv<7>  R_type_sub_func7 = "0100000";
   sc_bv<3>  R_type_sub_func3 = "111";
 
   // B type functs
@@ -82,15 +82,11 @@ SC_MODULE (cpu) {
   // Below function implements actual cpu logic
   void select_line () {
 
-
     // At every rising edge of clock we read the instruction memory
     // from the location pointed by Program Counter
     sc_bv<32> temp = instruction_memory.read()( (32*32) -1 - Program_Counter ,  (32*32) -32 - Program_Counter );
 
-
-
     //for(int i = Program_Counter;i<Program_Counter+32)
-
 
     //sc_bv<32> temp = instruction_memory.range(Program_Counter,Program_Counter+32);
     //cout<<instruction_memory.read()(Program_Counter+31, Program_Counter )<<"\n";
@@ -216,8 +212,6 @@ SC_MODULE (cpu) {
 
         sc_bv<32*32> temp = data_memory;
         
-        
-
         temp.range( (32*32) -1 - (register_memory[loc_base]+offset)*32 ,  (32*32) -32 - (register_memory[loc_base]+offset )*32 ) = register_memory[loc_src]; //.range(31,0)<<"sdshbvjksbdkjvbkjbfsjkbvkjbkjdvkbs\n";
         cout<<"storing "<<temp.range( (32*32) -1 - (register_memory[loc_base]+offset)*32 ,  (32*32) -32 - (register_memory[loc_base]+offset )*32 )<<"\n";
         //cout<<loc_base<<" --- "<<offset<<" --  "<<(register_memory[loc_base]+offset )<<" == "<<register_memory[5] <<"\n";
