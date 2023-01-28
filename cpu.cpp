@@ -13,10 +13,14 @@ Mentor: Dr. Binod Kumar
 Modified code repo: https://github.com/m21aie249/eel7210-lab2
 Modified by: Rohit Mathur (M21AIE249)
 Mentor: Dr. Binod Kumar
-Modifications: Add 5 new instructions
-Added code marked with "M21AIE249" comment
+Modifications: Add 5 new instructions, cleaned up code, added some comments
 
-For simulating this module, follow the instructions in the testbench_cpu.cpp file
+Added code marked with "M21AIE249"
+
+References:
+RISC-V Specification: https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMAFDQC/riscv-spec-20191213.pdf
+
+For simulating this module, follow the instructions in the testbench_cpu.cpp file or Readme.md
 
 */
 
@@ -48,38 +52,49 @@ SC_MODULE (cpu) {
     U-type: long immediates
     J-type: unconditional jumps, a variation of U-type
     */
+// M21AIE249: Corrected a few entries in original code:
 
-  sc_bv<7>  R_type_opcode = "1001111";
-  sc_bv<7>  I_type_opcode = "1101111";
+  sc_bv<7>  R_type_opcode = "0110011";
+  sc_bv<7>  I_type_opcode = "0000011";
   sc_bv<7>  S_type_opcode = "0100011";
   sc_bv<7>  B_type_opcode = "1100011";
-  sc_bv<7>  J_type_opcode = "1101110";
+  sc_bv<7>  J_type_opcode = "1101111";
 
   // R_type grp1 
   sc_bv<7>  R_type_add_func7 = "0000000";
-  sc_bv<3>  R_type_add_func3 = "111";
+  sc_bv<3>  R_type_add_func3 = "000";
     
   // R_type grp2
-  sc_bv<7>  R_type_and_func7 = "0000001";
-  sc_bv<7>  R_type_or_func7 = "0000001";
-  sc_bv<7>  R_type_xor_func7 = "0000001";
+  sc_bv<7>  R_type_and_func7 = "0000000";
+  sc_bv<7>  R_type_or_func7 = "0000000";
+  sc_bv<7>  R_type_xor_func7 = "0000000";
   
   sc_bv<3>  R_type_and_func3 = "111";
   sc_bv<3>  R_type_or_func3 = "110";
   sc_bv<3>  R_type_xor_func3 = "100";
+  
+  // M21AIE249: Added sll and srl instructions  
+  sc_bv<7>  R_type_sll_func7 = "0000000";
+  sc_bv<7>  R_type_srl_func7 = "0000000";
+
+  sc_bv<3>  R_type_sll_func3 = "001";
+  sc_bv<3>  R_type_srl_func3 = "101";
 
   // R_type grp4
   sc_bv<7>  R_type_sub_func7 = "0100000";
-  sc_bv<3>  R_type_sub_func3 = "111";
+  sc_bv<3>  R_type_sub_func3 = "000";
 
   // B type functs
   sc_bv<3>  B_type_beq_func3 = "000";
   sc_bv<3>  B_type_bne_func3 = "001";
-
-
+  
+  // M21AIE249: Added blt, bge instructions
+  sc_bv<3>  B_type_blt_func3 = "100";
+  sc_bv<3>  B_type_bge_func3 = "101";
   
   //------------Code Starts Here-------------------------
   // Below function implements actual cpu logic
+  
   void select_line () {
 
     // At every rising edge of clock we read the instruction memory
@@ -174,12 +189,36 @@ SC_MODULE (cpu) {
         cout<<register_memory[loc_dest]<<" "<<register_memory[loc_operand1]<<" "<<register_memory[loc_operand2]<<"\n";
         
         cout<<"@" << sc_time_stamp() <<"\n";
+      }
+	// M21AIE249: Handling sll
+      else if(temp.range(31,25)==R_type_sll_func7 && temp.range(14,12)==R_type_sll_func3){
+        cout<<"sll\n";
+        sc_int<32> loc_operand1  = (temp.range(24,20)).to_int();
+        sc_int<32> loc_operand2  = (temp.range(19,15)).to_int();
+        sc_int<32> loc_dest  = (temp.range(11,7)).to_int();
 
+        register_memory[loc_dest] = register_memory[loc_operand1] << register_memory[loc_operand2];
+        
+        cout<<register_memory[loc_dest]<<" "<<register_memory[loc_operand1]<<" "<<register_memory[loc_operand2]<<"\n";
+        
+        cout<<"@" << sc_time_stamp() <<"\n";
+      }
+	// M21AIE249: Handling srl 
+      else if(temp.range(31,25)==R_type_srl_func7 && temp.range(14,12)==R_type_srl_func3){
+        cout<<"srl\n";
+        sc_int<32> loc_operand1  = (temp.range(24,20)).to_int();
+        sc_int<32> loc_operand2  = (temp.range(19,15)).to_int();
+        sc_int<32> loc_dest  = (temp.range(11,7)).to_int();
 
+        register_memory[loc_dest] = register_memory[loc_operand1] >> register_memory[loc_operand2];
+        
+        cout<<register_memory[loc_dest]<<" "<<register_memory[loc_operand1]<<" "<<register_memory[loc_operand2]<<"\n";
+        
+        cout<<"@" << sc_time_stamp() <<"\n";
       }
 
-
     }
+        
     else if(temp.range(6,0)==I_type_opcode){
       // I - type
 
@@ -191,7 +230,6 @@ SC_MODULE (cpu) {
         sc_int<32> funct3  = (temp.range(14,12)).to_int();
         sc_int<32> loc_dest  = (temp.range(11,7)).to_int();
         cout<<"Register at "<< loc_dest<<" value "<<register_memory[loc_dest]<<"\n";
-        //register_memory[loc_dest] = data_memory[ register_memory[loc_operand]+offset ];  
         register_memory[loc_dest] = (data_memory.read()( (32*32) -1 - (register_memory[loc_operand]+offset)*32 ,  (32*32) -32 - (register_memory[loc_operand]+offset )*32 ) ).to_int();    
         cout<<(data_memory.read()( (32*32) -1 - (register_memory[loc_operand]+offset)*32 ,  (32*32) -32 - (register_memory[loc_operand]+offset )*32 ) )<<"\n";
         cout<<"Register at "<< loc_dest<<" value "<<register_memory[loc_dest]<<"\n";
@@ -212,13 +250,10 @@ SC_MODULE (cpu) {
 
         sc_bv<32*32> temp = data_memory;
         
-        temp.range( (32*32) -1 - (register_memory[loc_base]+offset)*32 ,  (32*32) -32 - (register_memory[loc_base]+offset )*32 ) = register_memory[loc_src]; //.range(31,0)<<"sdshbvjksbdkjvbkjbfsjkbvkjbkjdvkbs\n";
+        temp.range( (32*32) -1 - (register_memory[loc_base]+offset)*32 ,  (32*32) -32 - (register_memory[loc_base]+offset )*32 ) = register_memory[loc_src];
         cout<<"storing "<<temp.range( (32*32) -1 - (register_memory[loc_base]+offset)*32 ,  (32*32) -32 - (register_memory[loc_base]+offset )*32 )<<"\n";
-        //cout<<loc_base<<" --- "<<offset<<" --  "<<(register_memory[loc_base]+offset )<<" == "<<register_memory[5] <<"\n";
-        //cout<<(32*32) -1 - (register_memory[loc_base]+offset)*32<<" ------ "<<(32*32) -32 - (register_memory[loc_base]+offset )*32<<"\ffff\n";
-        data_memory.write(temp.range((32*32) -1, 0));//( (32*32) -1 - (register_memory[loc_base]+offset)*32 ,  (32*32) -32 - (register_memory[loc_base]+offset )*32 );
+        data_memory.write(temp.range((32*32) -1, 0));
         
-        //cout<<"after  "<<data_memory  <<"\n";
         cout<<"@" << sc_time_stamp() <<"\n";
 
     }
@@ -239,23 +274,36 @@ SC_MODULE (cpu) {
       if(funct3==B_type_bne_func3.to_int()){
         if(register_memory[loc_operand1]!=register_memory[loc_operand2] ){
           Program_Counter.write(Program_Counter + 2*32*offset_bits.to_int());
+          cout<<"bne\n";
         }
-      }
+      }  
       else if(funct3==B_type_beq_func3.to_int()){
         if(register_memory[loc_operand1]==register_memory[loc_operand2] ){
-          
           Program_Counter.write(Program_Counter + 2*32*offset_bits.to_int());
+          cout<<"beq\n";
         }
       }
-        cout<<"@" << sc_time_stamp() <<"\n";
-
+	// M21AIE249: Handling blt  
+      else if(funct3==B_type_blt_func3.to_int()){
+        if(register_memory[loc_operand1]<register_memory[loc_operand2] ){
+          Program_Counter.write(Program_Counter + 2*32*offset_bits.to_int());
+          cout<<"blt\n";
+        }
+      }
+	// M21AIE249: Handling bge
+      else if(funct3==B_type_bge_func3.to_int()){
+        if(register_memory[loc_operand1]>=register_memory[loc_operand2] ){
+          Program_Counter.write(Program_Counter + 2*32*offset_bits.to_int());
+          cout<<"bge\n";
+        }
+      }
+      cout<<"@" << sc_time_stamp() <<"\n";
     }
     else if(temp.range(6,0)==J_type_opcode){
-      cout<<" unconditional branch\n";
+      cout<<"unconditional branch\n";
       sc_bv<21> offset_bits;
       offset_bits.range(0,0) = "0";
       offset_bits.range(10,1) = temp.range(30,21);
-      
       offset_bits.range(11,11) = temp.range(20,20);
       offset_bits.range(20,20) = temp.range(31,31);
       offset_bits.range(19,12) = temp.range(19,12);
@@ -268,27 +316,13 @@ SC_MODULE (cpu) {
       cout<<"@" << sc_time_stamp()<<" "<<instruction <<" Null  \n";
     }
     
-
-    /*if (select.read() == 0) {
-      count =  0;
-      cpu_out.write(line1);
-    // If enable is active, then we in
-      cout<<"@" << sc_time_stamp() <<" :: Line1 selected  "
-        <<cpu_out.read()<<endl;crement the counter
-    } else if (select.read() == 1) {
-      count = count + 1;
-      count =  0;
-      cpu_out.write(line2);
-      cout<<"@" << sc_time_stamp() <<" :: Line2 selected  "
-        <<cpu_out.read()<<endl;
-    }
-    */
-  } // End of function incr_count
+  } // End of function select_line()
 
   // Constructor for the counter
   // Since this counter is a positive edge trigged one,
   // We trigger the below block with respect to positive
   // edge of the clock and also when ever reset changes state
+  
   SC_CTOR(cpu) {
     register_memory[0] = 111;
     register_memory[1] = 111;
@@ -296,11 +330,11 @@ SC_MODULE (cpu) {
     register_memory[3] = 3;
     register_memory[5] = 0;
 
-    cout<<"Executing new"<<endl;
+    cout<<"\nExecuting new"<<endl;
     SC_METHOD(select_line);
     sensitive << clock.pos();
-    //sensitive << reset;
+    //sensitive << reset; M21AIE249: Why should this be commented out?
     
   } // End of Constructor
 
-}; // End of Module counter
+}; // End of Module
