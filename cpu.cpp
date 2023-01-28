@@ -18,9 +18,9 @@ Modifications: Add 5 new instructions, cleaned up code, added some comments
 Added code marked with "M21AIE249"
 
 References:
-RISC-V Specification: https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMAFDQC/riscv-spec-20191213.pdf
+RISC-V Instructions: https://github.com/jameslzhu/riscv-card/blob/master/riscv-card.pdf
 
-For simulating this module, follow the instructions in the testbench_cpu.cpp file or Readme.md
+For simulating this module, follow the instructions in Readme.md
 
 */
 

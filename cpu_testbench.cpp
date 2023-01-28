@@ -18,15 +18,9 @@ Modifications: Add 5 new instructions, cleaned up code, added some comments
 Added code marked with "M21AIE249"
 
 References:
-RISC-V Specification: https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMAFDQC/riscv-spec-20191213.pdf
+RISC-V Instructions: https://github.com/jameslzhu/riscv-card/blob/master/riscv-card.pdf
 
-To run, execute the following commands on the system prompt, modify the SystemC folder locations as applicable: 
-
-export SYSTEMC_HOME=/usr/local/systemc-2.3.2/ 
-
-g++ -I. -I$SYSTEMC_HOME/include -L. -L$SYSTEMC_HOME/lib-linux64 -Wl,-rpath=$SYSTEMC_HOME/lib-linux64 -o cpu_testbench cpu_testbench.cpp -lsystemc -lm
-
-./cpu_testbench
+For simulating this module, follow the instructions in Readme.md
 
 */
 
